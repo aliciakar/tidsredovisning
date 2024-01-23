@@ -323,7 +323,7 @@ function test_RaderaAktivitet(): string {
             $retur .="<p class='ok'>Radera aktivitet fungerade</p>";
         } else {
             $retur .="<p class='error'>Radera aktivitet misslyckades.<br>"
-            . $svar->getStatus(). " och " . var_export($svar->getContent()->result, true)
+            . $svar->getStatus(). " och " . print_r($svar->getContent()->result, true)
             . " returnerades istället för förväntat 200 och 'true'. </p>";
         }
         $db->rollBack();
@@ -334,7 +334,7 @@ function test_RaderaAktivitet(): string {
             $retur .="<p class='ok'>Radera aktivitet som inte finns fungerade</p>";
         } else {
             $retur .="<p class='error'>Radera aktivitet som inte finns misslyckades.<br>"
-            . $svar->getStatus(). " och " . var_export($svar->getContent()->result, true)
+            . $svar->getStatus(). " och " . print_r($svar->getContent()->result, true)
             . "returnerades istället för förväntat 200 och 'true'. </p>";
         }
     } catch (Exception $ex) {
