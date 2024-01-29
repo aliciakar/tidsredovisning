@@ -179,7 +179,41 @@ function hamtaDatum(string $from, string $tom): Response {
  * @return Response
  */
 function hamtaEnskildUppgift(string $id): Response {
-    
+    //kontrollera indata
+    $kontrolleratId = filter_var($id, FILTER_VALIDATE_INT);
+    if(!$kontrolleratId) {
+        $retur = new stdClass();
+        $retur->error = ["Bad request", "Felaktigt angivet id"];
+        return new Response($retur, 400);
+    }
+
+    if($kontrolleratId && $kontrolleratId<1) {
+        $retur = new stdClass();
+        $retur->error = ["Bad request", "ogiltig id"];
+        return new Response($retur, 400);
+    }
+    //koppla databas
+    $db = connectDb();
+    //exekvera sql
+    $stmt = $db->prepare("SELECT u.id, tid, datum, beskrivning, aktivitetId, namn "
+            . "FROM uppgifter u INNER JOIN aktiviteter a ON aktivitetId=a.id "
+            . "WHERE u.id=:id");
+    $stmt->execute(['id'=>$kontrolleratId]);
+    //returnera svar
+    if ($row = $stmt->fetch()) {
+        $retur = new stdClass();
+        $retur->id = $row['id'];
+        $retur->date = $row['datum'];
+        $retur->time = substr($row['tid'], 0, -3);
+        $retur->activity = $row['namn'];
+        $retur->activityId = $row['aktivitetId'];
+        return new Response($retur);
+
+    } else {
+        $retur = new stdClass();
+        $retur->error = ["Hämta misslyckades", "Kunde inte hitta uppgift med angivet id"];
+        return new Response($retur, 400);
+    }
 }
 
 /**
@@ -227,7 +261,55 @@ function sparaNyUppgift(array $postData): Response {
  * @return Response
  */
 function uppdateraUppgift(string $id, array $postData): Response {
+    /*
+    * Kontrollera indata
+    */
+    //Kontrollera id
+    $kontrolleratId=filter_var($id, FILTER_VALIDATE_INT);
+    if(!$kontrolleratId){
+        $retur=new stdClass();
+        $retur->error=['Bad request', "Felaktigt id"];
+        return new Response($retur, 400);
+    }
+    if($kontrolleratId<1){
+        $retur=new stdClass();
+        $retur->error=['Bad request', "Ogiltigt id"];
+        return new Response($retur, 400);
+    }
+
+    //Kontrollera postdata
+    $error=kontrolleraIndata($postData);
+    if (count($error)!==0){
+        $retur=new stdClass();
+        $retur->error=$error;
+        return new Response($retur, 400);
+    }
+
+
+    //Koppla databasen
+    $db=connectDb();
+
+    //Exekvera databasfråga
+    $stmt=$db->prepare("UPDATE uppgifter SET "
+        . "datum=:date, tid=:time, aktivitetid=:activityid, beskrivning=:description "
+        . "WHERE id=:id");
+    $stmt->execute(['date'=>$postData['date'], 'time'=>$postData['time'],
+    'description'=>trim(filter_var($postData['description']??"", FILTER_SANITIZE_SPECIAL_CHARS)),
+    'activityid'=>$postData['activityId'], 'id'=>$kontrolleratId]);
     
+    //Returnera svar
+    if($stmt->rowCount()===1){
+        $retur=new stdClass();
+        $retur->result=true;
+        $retur->message=['Uppdatering lyckades', '1 post uppdaterad'];
+    } else {
+        $retur=new stdClass();
+        $retur->result=false;
+        $retur->message=['Uppdatering misslyckades', 'Ingen post uppdaterad']; 
+    }
+
+    return new Response($retur);
+
 }
 
 /**
