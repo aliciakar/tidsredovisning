@@ -179,7 +179,7 @@ function hamtaDatum(string $from, string $tom): Response {
  * @return Response
  */
 function hamtaEnskildUppgift(string $id): Response {
-    //kontrollera indata
+    //Kontrollera indata
     $kontrolleratId = filter_var($id, FILTER_VALIDATE_INT);
     if(!$kontrolleratId) {
         $retur = new stdClass();
@@ -192,14 +192,14 @@ function hamtaEnskildUppgift(string $id): Response {
         $retur->error = ["Bad request", "ogiltig id"];
         return new Response($retur, 400);
     }
-    //koppla databas
+    //Koppla databas
     $db = connectDb();
-    //exekvera sql
+    //Exekvera sql
     $stmt = $db->prepare("SELECT u.id, tid, datum, beskrivning, aktivitetId, namn "
             . "FROM uppgifter u INNER JOIN aktiviteter a ON aktivitetId=a.id "
             . "WHERE u.id=:id");
     $stmt->execute(['id'=>$kontrolleratId]);
-    //returnera svar
+    //Returnera svar
     if ($row = $stmt->fetch()) {
         $retur = new stdClass();
         $retur->id = $row['id'];
@@ -318,5 +318,37 @@ function uppdateraUppgift(string $id, array $postData): Response {
  * @return Response
  */
 function raderaUppgift(string $id): Response {
-    
+    //Kontrollera indata
+    $kontrolleratId = filter_var($id, FILTER_VALIDATE_INT);
+    if(!$kontrolleratId) {
+        $retur = new stdClass();
+        $retur->error = ["Bad request", "Felaktigt angivet id"];
+        return new Response($retur, 400);
+    }
+
+    if($kontrolleratId && $kontrolleratId<1) {
+        $retur = new stdClass();
+        $retur->error = ["Bad request", "ogiltig id"];
+        return new Response($retur, 400);
+    }
+    //Koppla databas
+    $db = connectDb();
+
+    //Exekvera databasfråga
+    $stmt=$db->prepare("DELETE FROM uppgifter WHERE id=:id");
+    $stmt->execute(['id'=>$kontrolleratId]);
+
+    //Returnera svar
+    if($stmt->rowCount()===1){
+        $retur=new stdClass();
+        $retur->result=true;
+        $retur->message=['Radering lyckades', '1 post raderad'];
+    } else {
+        $retur=new stdClass();
+        $retur->result=false;
+        $retur->message=['Radering misslyckades', 'Ingen post raderad']; 
+    }
+
+    return new Response($retur);
+
 }
