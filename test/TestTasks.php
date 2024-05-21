@@ -426,7 +426,7 @@ function test_KontrolleraIndata(): string {
     $retur = "<h2>test_KontrolleraIndata</h2>";
 
     try {
-        //Test alla saknas
+        //Test alla element saknas
         $postData=[];
         $svar=kontrolleraIndata($postData);
         if(count($svar)===3){
@@ -513,40 +513,42 @@ function test_KontrolleraIndata(): string {
             . $numFel . " stycken fel returnerades istället för förväntat 1</p>";
         }
 
-        //Kontrollera tid
-        $postData=["time"=>"entimme"
+        //Test felaktid tid "en timme"
+        $postData=["time"=>"en timme"
             , "date"=>"2024-01-01"
             , "activityId"=>"$aktivitetId"];
         $svar=kontrolleraIndata($postData);
         $numFel=count($svar);
         if($numFel===1) {
-            $retur .="<p class='ok'>Kontroll av ogiltigt angiven tid lyckades</p>";
+            $retur .="<p class='ok'>Kontroll av ogiltigt angiven tid 'en timme' lyckades</p>";
         }
         else {
             $retur .="<p class='error'>Kontroll av ogiltigt angiven tid misslyckades<br>"
             . $numFel . " stycken fel returnerades istället för förväntat 1</p>";
         }
 
-        $postData=["time"=>"01:00:00"
+        //Test felaktid tid "1:00"
+        $postData=["time"=>"1:00"
             , "date"=>"2024-01-01"
             , "activityId"=>"$aktivitetId"];
         $svar=kontrolleraIndata($postData);
         $numFel=count($svar);
         if($numFel===1) {
-            $retur .="<p class='ok'>Kontroll av felaktigt angiven tid lyckades</p>";
+            $retur .="<p class='ok'>Kontroll av felaktigt angiven tid '1:00' lyckades</p>";
         }
         else {
             $retur .="<p class='error'>Kontroll av felaktigt angiven tid misslyckades<br>"
             . $numFel . " stycken fel returnerades istället för förväntat 1</p>";
         }
 
+        //Felaktig tid "09:00"
         $postData=["time"=>"09:00"
             , "date"=>"2024-01-01"
             , "activityId"=>"$aktivitetId"];
         $svar=kontrolleraIndata($postData);
         $numFel=count($svar);
         if($numFel===1) {
-            $retur .="<p class='ok'>Kontroll av tid längre än 8 timmar lyckades</p>";
+            $retur .="<p class='ok'>Kontroll av tid längre än 8 timmar ('09:00') lyckades</p>";
         }
         else {
             $retur .="<p class='error'>Kontroll av tid längre än 8 timmar misslyckades<br>"
@@ -567,7 +569,7 @@ function test_KontrolleraIndata(): string {
             . $numFel . " stycken fel returnerades istället för förväntat 1</p>";
         }
 
-        //Kontrollera aktivitetId
+        //Kontrollera aktivitetId 0
         rsort($aktiviteter);
         $aktivitetId=$aktiviteter[0]->id+1;
         $postData=["time"=>"01:00"
@@ -576,7 +578,7 @@ function test_KontrolleraIndata(): string {
         $svar=kontrolleraIndata($postData);
         $numFel=count($svar);
         if($numFel===1) {
-            $retur .="<p class='ok'>Kontroll av id som inte finns lyckades</p>";
+            $retur .="<p class='ok'>Kontroll av aktivitetsid=0 lyckades</p>";
         }
         else {
             $retur .="<p class='error'>Kontroll av id som inte finns misslyckades<br>"
